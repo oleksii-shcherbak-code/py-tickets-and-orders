@@ -12,31 +12,17 @@ def create_user(
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
 ) -> User:
-    user = get_user_model().objects.create_user(
+    return get_user_model().objects.create_user(
         username=username,
         password=password,
+        email=email or "",
+        first_name=first_name or "",
+        last_name=last_name or "",
     )
-
-    fields_updated = False
-
-    if email:
-        user.email = email
-        fields_updated = True
-    if first_name:
-        user.first_name = first_name
-        fields_updated = True
-    if last_name:
-        user.last_name = last_name
-        fields_updated = True
-
-    if fields_updated:
-        user.save()
-
-    return user
 
 
 def get_user(user_id: int) -> User:
-    return get_user_model().objects.get(pk=user_id)
+    return get_user_model().objects.get(id=user_id)
 
 
 def update_user(
@@ -48,25 +34,17 @@ def update_user(
     last_name: Optional[str] = None,
 ) -> User:
     user = get_user(user_id)
-    fields_updated = False
 
-    if username:
+    if username is not None:
         user.username = username
-        fields_updated = True
-    if email:
+    if email is not None:
         user.email = email
-        fields_updated = True
-    if first_name:
+    if first_name is not None:
         user.first_name = first_name
-        fields_updated = True
-    if last_name:
+    if last_name is not None:
         user.last_name = last_name
-        fields_updated = True
-    if password:
+    if password is not None:
         user.set_password(password)
-        fields_updated = True
 
-    if fields_updated:
-        user.save()
-
+    user.save()
     return user
