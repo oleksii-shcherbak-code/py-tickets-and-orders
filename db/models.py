@@ -94,24 +94,30 @@ class Ticket(models.Model):
     seat = models.IntegerField()
 
     def __str__(self) -> str:
-        ms = self.movie_session
-        return (f"{ms.movie.title} {ms.show_time} "
-                f"(row: {self.row}, seat: {self.seat})")
+        movie_session = self.movie_session
+        return (
+            f"{movie_session.movie.title} {movie_session.show_time} "
+            f"(row: {self.row}, seat: {self.seat})"
+        )
 
     def clean(self) -> None:
-        hall = self.movie_session.cinema_hall
-        errors = {}
+        cinema_hall = self.movie_session.cinema_hall
+        errors: dict[str, list[str]] = {}
 
-        if not (1 <= self.row <= hall.rows):
+        if not (1 <= self.row <= cinema_hall.rows):
             errors["row"] = [
-                f"row number must be in available "
-                f"range: (1, rows): (1, {hall.rows})"
+                (
+                    "row number must be in available "
+                    f"range: (1, rows): (1, {cinema_hall.rows})"
+                )
             ]
 
-        if not (1 <= self.seat <= hall.seats_in_row):
+        if not (1 <= self.seat <= cinema_hall.seats_in_row):
             errors["seat"] = [
-                "seat number must be in available range: "
-                f"(1, seats_in_row): (1, {hall.seats_in_row})"
+                (
+                    "seat number must be in available range: "
+                    f"(1, seats_in_row): (1, {cinema_hall.seats_in_row})"
+                )
             ]
 
         if errors:

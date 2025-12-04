@@ -1,5 +1,6 @@
-from datetime import datetime
-from typing import Optional
+import datetime
+from typing import Optional, Dict, List
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import QuerySet
@@ -9,7 +10,7 @@ from db.models import Order, Ticket
 
 @transaction.atomic
 def create_order(
-    tickets: list[dict[str, int]],
+    tickets: List[Dict[str, int]],
     username: str,
     date: Optional[str] = None,
 ) -> Order:
@@ -17,25 +18,28 @@ def create_order(
 
     order = Order.objects.create(user=user)
 
-    if date is not None:
-        order.created_at = datetime.strptime(date, "%Y-%m-%d %H:%M")
+    if date:
+        order.created_at = datetime.datetime.strptime(
+            date,
+            "%Y-%m-%d %H:%M",
+        )
         order.save()
 
-    for data in tickets:
+    for ticket_data in tickets:
         Ticket.objects.create(
-            movie_session_id=data["movie_session"],
+            movie_session_id=ticket_data["movie_session"],
             order=order,
-            row=data["row"],
-            seat=data["seat"],
+            row=ticket_data["row"],
+            seat=ticket_data["seat"],
         )
 
     return order
 
 
 def get_orders(username: Optional[str] = None) -> QuerySet[Order]:
-    queryset = Order.objects.select_related("user")
+    queryset = Order.objects.all()
 
-    if username is not None:
+    if username:
         queryset = queryset.filter(user__username=username)
 
     return queryset
