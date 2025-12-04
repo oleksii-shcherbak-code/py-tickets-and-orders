@@ -94,10 +94,10 @@ class Ticket(models.Model):
     seat = models.IntegerField()
 
     def __str__(self) -> str:
-        movie_session = self.movie_session
+        ms = self.movie_session
         return (
-            f"{movie_session.movie.title} {movie_session.show_time} "
-            f"(row: {self.row}, seat: {self.seat})"
+            f"<Ticket: {ms.movie.title} {ms.show_time} "
+            f"(row: {self.row}, seat: {self.seat})>"
         )
 
     def clean(self) -> None:

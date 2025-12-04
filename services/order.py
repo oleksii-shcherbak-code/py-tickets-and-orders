@@ -16,14 +16,15 @@ def create_order(
 ) -> Order:
     user = get_user_model().objects.get(username=username)
 
-    order = Order.objects.create(user=user)
+    order = Order(user=user)
 
     if date:
         order.created_at = datetime.datetime.strptime(
             date,
             "%Y-%m-%d %H:%M",
         )
-        order.save()
+
+    order.save()  # ← единственный save
 
     for ticket_data in tickets:
         Ticket.objects.create(
