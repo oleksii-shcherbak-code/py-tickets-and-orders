@@ -2,7 +2,7 @@ import datetime
 from typing import Optional, Dict, List
 
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import transaction, connection
 from django.db.models import QuerySet
 
 from db.models import Order, Ticket
@@ -16,15 +16,23 @@ def create_order(
 ) -> Order:
     user = get_user_model().objects.get(username=username)
 
-    order = Order(user=user)
-
     if date:
-        order.created_at = datetime.datetime.strptime(
-            date,
-            "%Y-%m-%d %H:%M",
-        )
+        created_at = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M")
 
-    order.save()  # ← единственный save
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO db_order (created_at, user_id)
+                VALUES (%s, %s)
+                """,
+                (created_at, user.id),
+            )
+            order_id = cursor.lastrowid
+
+        order = Order.objects.get(id=order_id)
+
+    else:
+        order = Order.objects.create(user=user)
 
     for ticket_data in tickets:
         Ticket.objects.create(
@@ -39,8 +47,6 @@ def create_order(
 
 def get_orders(username: Optional[str] = None) -> QuerySet[Order]:
     queryset = Order.objects.all()
-
     if username:
         queryset = queryset.filter(user__username=username)
-
     return queryset
